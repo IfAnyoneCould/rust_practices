@@ -6,6 +6,7 @@ enum Item {
     Stone,
     Coal,
     Iron,
+    Stick,
     StoneShovel,
 }
 
@@ -16,6 +17,7 @@ impl Item {
             Item::Stone => "Stone".to_string(),
             Item::Coal => "Coal".to_string(),
             Item::Iron => "Iron".to_string(),
+            Item::Stick => "Stick".to_string(),
             Item::StoneShovel => "StoneShovel".to_string(),
         }
     }
@@ -25,6 +27,7 @@ impl Item {
             "Stone" => Some(Item::Stone),
             "Coal" => Some(Item::Coal),
             "Iron" => Some(Item::Iron),
+            "Stick" => Some(Item::Stick),
             "StoneShovel" => Some(Item::StoneShovel),
             _ => None,
         }
@@ -122,10 +125,12 @@ fn main() {
     let mut inv = Inventory::new();
     inv.add(Item::Wood);
     inv.add(Item::Wood);
+    inv.add(Item::Stick);
+    inv.add(Item::Stick);
     inv.add(Item::Stone);
 
     let mut recipe_hash = HashMap::new();
-    recipe_hash.insert(Item::Wood, 2);
+    recipe_hash.insert(Item::Stick, 2);
     recipe_hash.insert(Item::Stone, 1);
     let recipe = Recipe::new("StoneShovel", recipe_hash, Item::StoneShovel);
 
