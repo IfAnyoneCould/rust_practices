@@ -7,7 +7,7 @@ enum CalcError {
     MalformedToken(String),
     MissingOperand,
     UnexpectedEnd,
-    DivisionByzero,
+    DivisionByZero,
     UnpairedParentheses,
     //continue these are needed
 }
@@ -20,7 +20,7 @@ impl fmt::Display for CalcError {
             CalcError::MalformedToken(t) => write!(f, "Error: malformed token during pasrse: {t}"),
             CalcError::MissingOperand => write!(f, "Error: missing operand"),
             CalcError::UnexpectedEnd => write!(f, "Error: unexpected ending"),
-            CalcError::DivisionByzero => write!(f, "Error: division by zero"),
+            CalcError::DivisionByZero => write!(f, "Error: division by zero"),
             CalcError::UnpairedParentheses => write!(f, "Error: unpaired paranthesis"),
         }
     }
@@ -55,15 +55,7 @@ impl fmt::Display for Token {
 
 fn print_token_list(input: &Vec<Token>) {
     for t in input {
-        match t {
-            Token::Number(n) => print!("{} ", n),
-            Token::Plus => print!("+ "),
-            Token::Minus => print!("- "),
-            Token::Star => print!("* "),
-            Token::Slash => print!("/ "),
-            Token::LParen => print!("( "),
-            Token::RParen => print!(") "),
-        }
+        print!("{t} ");
     }
     println!();
 }
@@ -130,12 +122,16 @@ fn build_expr(input: &Vec<Token>) -> Result<Vec<Token>, CalcError> {
                 operator.push(*t);
             }
             Token::RParen => {
-                while let Some(o2) = operator.last() {
-                    if *o2 != Token::LParen {
-                        output.push(operator.pop().unwrap());
-                    } else {
+                let mut found_pair = false;
+                while let Some(o2) = operator.pop() {
+                    if o2 == Token::LParen {
+                        found_pair = true;
                         break;
                     }
+                    output.push(o2);
+                }
+                if !found_pair {
+                    return Err(CalcError::UnpairedParentheses);
                 }
             }
             _ => {
@@ -171,14 +167,24 @@ fn evaluate_expr(input: Vec<Token>) -> Result<f64, CalcError> {
                     Token::Plus => l + r,
                     Token::Minus => l - r,
                     Token::Star => l * r,
-                    Token::Slash => l / r,
+                    Token::Slash => {
+                        if r != 0.0 {
+                            l / r
+                        } else {
+                            return Err(CalcError::DivisionByZero);
+                        }
+                    }
                     e => return Err(CalcError::UnexpectedToken(e)),
                 };
                 stack.push(result);
             }
         }
     }
-    Ok(stack[0])
+    match stack.as_slice() {
+        [v] => Ok(*v),
+        [] => Err(CalcError::UnexpectedEnd),
+        _ => Err(CalcError::MissingOperand),
+    }
 }
 
 fn main() {
